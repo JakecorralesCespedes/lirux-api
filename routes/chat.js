@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
+const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Add CORS middleware for this route
-router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+// Configuración específica de CORS para esta ruta
+const corsOptions = {
+  origin: true, // Permite cualquier origen
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Aplicar CORS a nivel de router
+router.use(cors(corsOptions));
 
 // Define las instrucciones iniciales
 const SYSTEM_PROMPT = `Eres un asistente virtual profesional para Radio Lira 88.7 FM. DEBES SEGUIR ESTAS INSTRUCCIONES AL PIE DE LA LETRA:
@@ -90,32 +90,31 @@ router.post('/', async (req, res) => {
             ],
         });
         
-        try {
-            const result = await chat.sendMessage([{ text: message }]);
-            const response = await result.response.text();
-            
-            if (!response) {
-                throw new Error('Empty response from AI');
-            }
-            
-            res.json({ 
-                success: true,
-                response: response 
-            });
-        } catch (error) {
-            console.error('Chat error:', error);
-            res.status(500).json({ 
-                success: false,
-                error: 'Error processing request',
-                details: error.message 
-            });
+        const result = await chat.sendMessage([{ text: message }]);
+        const responseText = await result.response.text();
+        
+        // Asegurarse de que la respuesta sea válida
+        if (!responseText) {
+            throw new Error('Empty response from AI');
         }
+
+        // Enviar respuesta con headers CORS explícitos
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Content-Type', 'application/json');
+        res.status(200).json({
+            success: true,
+            response: responseText
+        });
+
     } catch (error) {
-        console.error('Request error:', error);
-        res.status(500).json({ 
+        console.error('Error:', error);
+        // Enviar error con headers CORS explícitos
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Content-Type', 'application/json');
+        res.status(500).json({
             success: false,
             error: 'Error processing request',
-            details: error.message 
+            details: error.message
         });
     }
 });
