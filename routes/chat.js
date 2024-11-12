@@ -100,10 +100,26 @@ router.post('/', async (req, res) => {
             ],
         });
         
-        const result = await chat.sendMessage([{ text: message }]);
-        const response = result.response.text();
-        
-        res.json({ response });
+        try {
+            const result = await chat.sendMessage([{ text: message }]);
+            const response = await result.response.text();
+            
+            if (!response) {
+                throw new Error('Empty response from AI');
+            }
+            
+            res.json({ 
+                success: true,
+                response: response 
+            });
+        } catch (error) {
+            console.error('Chat error:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Error processing request',
+                details: error.message 
+            });
+        }
     } catch (error) {
         console.error('Chat error:', error);
         res.status(500).json({ 
