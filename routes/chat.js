@@ -60,16 +60,19 @@ async function initializeAI() {
 
 router.post('/', async (req, res) => {
     try {
-        // Asegurarse de que el modelo esté inicializado
         if (!initialized) {
             await initializeAI();
         }
 
         const { message } = req.body;
-        if (!process.env.GOOGLE_API_KEY) {
-            throw new Error('API key not found');
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
         }
-        
+
+        if (!process.env.GOOGLE_API_KEY) {
+            return res.status(500).json({ error: 'API key not configured' });
+        }
+
         const chat = model.startChat({
             history: [
                 {
@@ -90,7 +93,7 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error('Chat error:', error);
         res.status(500).json({ 
-            error: 'Error processing your request',
+            error: 'Error processing request',
             details: error.message 
         });
     }
