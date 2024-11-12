@@ -4,11 +4,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const cors = require('cors');
 
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://lirux-api.onrender.com',
+    // Add any other allowed origins here
+  ],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+// Apply CORS configuration
+app.use(cors(corsOptions));
+
 // Middleware para procesar JSON
 app.use(express.json());
-
-// Middleware para configurar CORS
-app.use(cors());
 
 // Importar rutas
 const chatRouter = require('./routes/chat');
