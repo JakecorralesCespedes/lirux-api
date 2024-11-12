@@ -2,6 +2,20 @@ const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Add CORS middleware for this route
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Define las instrucciones iniciales
 const SYSTEM_PROMPT = `Eres un asistente virtual profesional para Radio Lira 88.7 FM. DEBES SEGUIR ESTAS INSTRUCCIONES AL PIE DE LA LETRA:
 
