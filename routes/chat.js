@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Add CORS middleware for this route
 router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', '*');
+  res.header('Access-Control-Allow-Headers', '*');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -56,12 +56,6 @@ let initialized = false;
 async function initializeAI() {
     try {
         if (!initialized) {
-            const fetchModule = await import('node-fetch');
-            global.fetch = fetchModule.default;
-            global.Headers = fetchModule.Headers;
-            global.Request = fetchModule.Request;
-            global.Response = fetchModule.Response;
-            
             const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
             model = genAI.getGenerativeModel({ model: 'gemini-pro' });
             initialized = true;
@@ -81,10 +75,6 @@ router.post('/', async (req, res) => {
         const { message } = req.body;
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
-        }
-
-        if (!process.env.GOOGLE_API_KEY) {
-            return res.status(500).json({ error: 'API key not configured' });
         }
 
         const chat = model.startChat({
@@ -121,8 +111,9 @@ router.post('/', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Chat error:', error);
+        console.error('Request error:', error);
         res.status(500).json({ 
+            success: false,
             error: 'Error processing request',
             details: error.message 
         });
