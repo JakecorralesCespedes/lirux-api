@@ -56,6 +56,13 @@ let initialized = false;
 async function initializeAI() {
     try {
         if (!initialized) {
+            // Importar y configurar fetch global
+            const fetchModule = await import('node-fetch');
+            global.fetch = fetchModule.default;
+            global.Headers = fetchModule.Headers;
+            global.Request = fetchModule.Request;
+            global.Response = fetchModule.Response;
+            
             const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
             model = genAI.getGenerativeModel({ model: 'gemini-pro' });
             initialized = true;
